@@ -1,10 +1,17 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+
 const char* ssid = "Van Tho 15";
 const char* password = "vannhucu15";
-
 const char* awsEndpoint = "a35cho9o6i7esh-ats.iot.us-east-1.amazonaws.com";
+
+const long utcOffsetInSeconds = 3600;
+char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 
 
 // xxxxxxxxxx-certificate.pem.crt
@@ -93,6 +100,12 @@ BearSSL::X509List rootCert(caPemCrt);
 WiFiClientSecure wiFiClient;
 void msgReceived(char* topic, byte* payload, unsigned int len);
 PubSubClient pubSubClient(awsEndpoint, 8883, msgReceived, wiFiClient); 
+void getDataTime();
+
+unsigned long lastPublish;
+int8_t NhipTim, Spo2;
+String topicsub = "VanTho"; // nhận dữ liệu
+String topicpub = "Data"; // gửi dữ liệu
 
 void setup() {
   Serial.begin(115200); Serial.println();
@@ -108,44 +121,66 @@ void setup() {
 
   wiFiClient.setClientRSACert(&client_crt, &client_key);
   wiFiClient.setTrustAnchors(&rootCert);
+
+  timeClient.begin();
+  timeClient.setTimeOffset(+7*60*60);
 }
-
-unsigned long lastPublish;
-int msgCount;
-
-void loop() {
-
+void loop() 
+{
   pubSubCheckConnect();
-
-  if (millis() - lastPublish > 10000) {
-    String msg = String("Hello from ESP8266: ") + ++msgCount;
-    pubSubClient.publish("outTopic", msg.c_str());
-    Serial.print("Published: "); Serial.println(msg);
+  
+  if (millis() - lastPublish > 1000) {
+    getDataTime();
+     
+    NhipTim = random(50, 100);
+    Spo2 = random(30, 80);
+    String data = "{\"NhipTim\":\"" + String(NhipTim) + "\"," +
+                  "\"Spo2\":\"" + String(Spo2) + "\"}";
+    pubSubClient.publish(topicpub.c_str(), data.c_str());
+    Serial.print("Published: "); Serial.println(data);
     lastPublish = millis();
   }
 }
 
 void msgReceived(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message received on "); Serial.print(topic); Serial.print(": ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.println("]");
+  String s = "";
+  for (int i = 0; i < length; i++)
+  {
+    char p = (char)payload[i];
+    s = s + p;
   }
-  Serial.println();
+  Serial.println(s);
 }
 
 void pubSubCheckConnect() {
-  if ( ! pubSubClient.connected()) {
+  if ( ! pubSubClient.connected()) 
+  {
     Serial.print("PubSubClient connecting to: "); Serial.print(awsEndpoint);
-    while ( ! pubSubClient.connected()) {
+    while ( ! pubSubClient.connected()) 
+    {
       Serial.print(".");
       pubSubClient.connect("ESPthing");
     }
     Serial.println(" connected");
-    pubSubClient.subscribe("inTopic");
+    pubSubClient.subscribe(topicsub.c_str());
   }
   pubSubClient.loop();
 }
+void getDataTime()
+{
+  timeClient.update();
+  Serial.print(daysOfTheWeek[timeClient.getDay()]);
+  Serial.print(", ");
+  Serial.print(timeClient.getHours());
+  Serial.print(":");
+  Serial.print(timeClient.getMinutes());
+  Serial.print(":");
+  Serial.println(timeClient.getSeconds());
 
+}
 void setCurrentTime() {
   configTime(3 * 3600, 0, "pool.ntp.org", "time.nist.gov");
 
