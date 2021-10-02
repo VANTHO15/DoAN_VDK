@@ -27,13 +27,16 @@ void setup(){
 void loop() {
   timeClient.update();
 
-  Serial.print(daysOfTheWeek[timeClient.getDay()]);
-  Serial.print(", ");
-  Serial.print(timeClient.getHours());
-  Serial.print(":");
-  Serial.print(timeClient.getMinutes());
-  Serial.print(":");
-  Serial.println(timeClient.getSeconds());
+//  Serial.print(daysOfTheWeek[timeClient.getDay()]);
+//  Serial.print(", ");
+//  Serial.print(timeClient.getHours());
+//  Serial.print(":");
+//  Serial.print(timeClient.getMinutes());
+//  Serial.print(":");
+//  Serial.println(timeClient.getSeconds());
+String Data = "A" +String( daysOfTheWeek[timeClient.getDay()]) + "B" + String(timeClient.getHours())+ "C" + String(timeClient.getMinutes())+
+             "D" + String(timeClient.getSeconds())+ "E";
+             Serial.println(Data);
 
   delay(1000);
 }
