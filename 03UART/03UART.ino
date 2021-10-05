@@ -1,12 +1,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
-#include <EEPROM.h>  
+#include <EEPROM.h>
 #define PIN_LED 2
 #define PIN_CONFIG 14
 ESP8266WebServer server(80);
 int statusCode;
-String content;  
+String content;
 bool TestWifi();
 void LaunchWeb();
 void SetupAP();
@@ -14,18 +14,18 @@ bool LongPress();                              // Config WIFI
 
 #include "FirebaseESP8266.h"
 #define FIREBASE_HOST "https://nhiptim-fee3b-default-rtdb.firebaseio.com/"
-#define FIREBASE_AUTH "cD4w8FSoWzgQa4S3rJZUNNxYS6IAOeFrnGN2uost" 
+#define FIREBASE_AUTH "cD4w8FSoWzgQa4S3rJZUNNxYS6IAOeFrnGN2uost"
 FirebaseData firebaseData;
 String path = "/";
 long long last = 0;
-int8_t NhipTim, Spo2 , SetupFirebase = 0;  
+int8_t NhipTim, Spo2 , SetupFirebase = 0;
 void WriteDataToFirebase();                      // FIREBASE
 
 #include <PubSubClient.h>
 const char* mqtt_server = "ngoinhaiot.com";
 const char* mqtt_user = "Vantho15";
 const char* mqtt_pass = "3759DFCEFE834F17";
-int mqtt_port = 1111, Change =0;      // esp kết nối mqtt => TCP
+int mqtt_port = 1111, Change = 0;     // esp kết nối mqtt => TCP
 WiFiClient espClient;
 PubSubClient client(espClient);
 String ChuoiSendMQTT = "";
@@ -33,7 +33,7 @@ void ConnectMqttBroker();
 void reconnect();
 void SendDataMQTT(String NhipTim, String Spo2);   // MQTT
 
-#include <SoftwareSerial.h> 
+#include <SoftwareSerial.h>
 const byte RX = D6;
 const byte TX = D5;
 SoftwareSerial mySerial = SoftwareSerial(RX, TX);
@@ -45,20 +45,20 @@ void Read_Uart();    // UART STM
 const long utcOffsetInSeconds = 3600;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds); 
+NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 String DataToSTM, Thu, Gio, Phut, Giay ;              // GET DATE TIME
 
 void setup()
 {
   timeClient.begin();
-  timeClient.setTimeOffset(+7*60*60);  // VietNam ở múi giờ thứ 7
-  
+  timeClient.setTimeOffset(+7 * 60 * 60); // VietNam ở múi giờ thứ 7
+
   while (!Serial);
   mySerial.begin(115200);
   while (!mySerial);
   Serial.println("UART Start");
   lastUART = millis();
-  
+
   Serial.begin(115200);
   Serial.println();
   Serial.println("Ngat ket noi wifi da ket noi truoc do");
@@ -90,7 +90,7 @@ void setup()
   int KiemTraUser = EEPROM.read(96);
   Serial.print("Firebase Kiem Tra: ");
   Serial.println(KiemTraUser);
-  if(KiemTraUser == 255)  // Chưa đăng kí User
+  if (KiemTraUser == 255) // Chưa đăng kí User
   {
     EEPROM.write(96, 0);
   }
@@ -98,7 +98,7 @@ void setup()
   KiemTraUser = EEPROM.read(96);
   Serial.print("Firebase : ");
   Serial.println(KiemTraUser);
-  
+
   // Kết nối vào wifi
   WiFi.begin(esid.c_str(), epass.c_str());
   if (TestWifi())
@@ -122,12 +122,8 @@ void setup()
   }
 }
 ///////////////////////////////////////////////////////////LOOP///////////////////////////////////////////////////////////
-void loop() {
-  for (int i = 0; i < 96; ++i)
-    {
-      EEPROM.write(i, 0);
-    }
-    EEPROM.commit();
+void loop()
+{
   // Có wifi
   if ( EEPROM.read(96) == 0)  // Chỉ chạy 1 lần để đăng kí
   {
@@ -141,17 +137,17 @@ void loop() {
   Gio = String(timeClient.getHours());
   Phut = String(timeClient.getMinutes());
   Giay = String(timeClient.getSeconds());
-  DataToSTM = "A"+ Thu + "B" + Gio + "C" + Phut + "D" + Giay + "E\n" ;
-  
+  DataToSTM = "A" + Thu + "B" + Gio + "C" + Phut + "D" + Giay + "E\n" ;
+
   // READ/WRITE UART
   Read_Uart();
-  if(millis() - lastUART >= 500)
+  if (millis() - lastUART >= 500)
   {
-    Serial.println("Đã send : "+ DataToSTM);
+    Serial.println("Đã send : " + DataToSTM);
     mySerial.println(DataToSTM);
     lastUART = millis();
   }
- 
+
   // NHẤN NÚT CONFIG
   if (LongPress())  // bấm nút config
   {
@@ -162,14 +158,14 @@ void loop() {
     EEPROM.commit();
     Serial.println("Button Smartconfig");
   }
-  
+
   // Connect MQTT
-   if (!client.connected())
+  if (!client.connected())
   {
     reconnect();
   }
   client.loop();
-  
+
   // SEND TO MQTT
   if (millis() - last >= 500)
   {
@@ -184,7 +180,7 @@ void Read_Uart()
   while (mySerial.available())
   {
     String st = mySerial.readString();
-    Serial.println("Nhan : "+ st);
+    Serial.println("Nhan : " + st);
   }
 }
 
@@ -216,9 +212,9 @@ void SendDataMQTT(String NhipTim, String Spo2) // gửi data
 {
   ChuoiSendMQTT = "";
   Change = ! Change;
-  ChuoiSendMQTT = "{\"NhipTim\":\"" + String(NhipTim) + "\"," +        
-                   "\"Spo2\":\"" + String(Spo2)+ "\","
-                    "\"Change\":\"" + String(Change) + "\"}";
+  ChuoiSendMQTT = "{\"NhipTim\":\"" + String(NhipTim) + "\"," +
+                  "\"Spo2\":\"" + String(Spo2) + "\","
+                  "\"Change\":\"" + String(Change) + "\"}";
   String MACID = WiFi.macAddress();
   String data = "Vantho15/" + MACID;
   client.publish(data.c_str(), ChuoiSendMQTT.c_str());
@@ -228,20 +224,20 @@ void SendDataMQTT(String NhipTim, String Spo2) // gửi data
 }
 void WriteDataToFirebase()
 {
-    Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-    Firebase.reconnectWiFi(true);
-    if (!Firebase.beginStream(firebaseData, path))
-    {
-      Serial.println("REASON:+ " + firebaseData.errorReason());
-      Serial.println();
-    }
-    String MACID =WiFi.macAddress();
-    Firebase.setString(firebaseData, path +"/"+MACID+"/ID" , "Admin");
-    Firebase.setString(firebaseData, path +"/"+MACID+"/PASS", "Admin" );
-    Serial.println("Dang Ki Firebase Thanh cong ID =Admin PASS =Admin " + MACID);
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  Firebase.reconnectWiFi(true);
+  if (!Firebase.beginStream(firebaseData, path))
+  {
+    Serial.println("REASON:+ " + firebaseData.errorReason());
+    Serial.println();
+  }
+  String MACID = WiFi.macAddress();
+  Firebase.setString(firebaseData, path + "/" + MACID + "/ID" , "Admin");
+  Firebase.setString(firebaseData, path + "/" + MACID + "/PASS", "Admin" );
+  Serial.println("Dang Ki Firebase Thanh cong ID =Admin PASS =Admin " + MACID);
 
-    EEPROM.write(96, 1);
-    EEPROM.commit();
+  EEPROM.write(96, 1);
+  EEPROM.commit();
 }
 bool LongPress()
 {
@@ -321,7 +317,6 @@ void SetupAP()
   }
   Serial.println("");
   WiFi.softAP("Heart Rate", "");
-  Serial.println("softap");
   LaunchWeb();
   Serial.println("over");
 }
