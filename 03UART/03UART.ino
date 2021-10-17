@@ -2,7 +2,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WebServer.h>
 #include <EEPROM.h>
-#define PIN_LED 2
+#define PIN_LED 16
 #define PIN_CONFIG 14
 ESP8266WebServer server(80);
 int statusCode;

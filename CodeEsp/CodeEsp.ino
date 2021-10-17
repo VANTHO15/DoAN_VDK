@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h> //2.5.0
+#include <SoftwareSerial.h>  // EspSoftwareSerial
 const byte RX = D6;
 const byte TX = D5;
 SoftwareSerial mySerial = SoftwareSerial(RX, TX);
@@ -8,7 +8,7 @@ void setup()
 {
   Serial.begin(9600);
   while (!Serial);
-  mySerial.begin(9600);
+  mySerial.begin(115200);
   while (!mySerial);
   Serial.println("Start");
 
