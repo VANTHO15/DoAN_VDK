@@ -12,7 +12,7 @@ String path = "/";
 long long last = 0;
 int8_t NhipTim, Spo2 , SetupFirebase = 0;
 
-#define PIN_LED 2
+#define PIN_LED 16
 #define PIN_CONFIG 14
 
 int statusCode;
@@ -35,7 +35,7 @@ void setup()
   WiFi.disconnect();
   EEPROM.begin(512); //Khởi tạo eeprom
   delay(10);
-  pinMode(PIN_LED, OUTPUT); // GPIO2
+  pinMode(PIN_LED, OUTPUT); // GPIO16
   pinMode(PIN_CONFIG, INPUT); // GPIO14
   Serial.println();
 
@@ -110,7 +110,7 @@ void loop() {
       EEPROM.write(i, 0);
     }
     EEPROM.commit();
-    Serial.println("Enter smartconfig");
+    Serial.println("Smartconfig "+ WiFi.macAddress());
   }
 }
 void WriteDataToFirebase()

@@ -18,7 +18,8 @@ bool LongPress();                              // Config WIFI
 FirebaseData firebaseData;
 String path = "/";
 long long last = 0;
-int8_t NhipTim, Spo2 , SetupFirebase = 0;
+int8_t NhipTim, Spo2, NhietDo , SetupFirebase = 0;
+int32_t LedDo;
 void WriteDataToFirebase();                      // FIREBASE
 
 #include <PubSubClient.h>
@@ -46,7 +47,7 @@ const long utcOffsetInSeconds = 3600;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
-String DataToSTM, Thu, Gio, Phut, Giay ;              // GET DATE TIME
+String DataToSTM, Thu, Gio, Phut, Giay, ThoiGian ;              // GET DATE TIME
 
 void setup()
 {
@@ -138,13 +139,14 @@ void loop()
   Phut = String(timeClient.getMinutes());
   Giay = String(timeClient.getSeconds());
   DataToSTM = "A" + Thu + "B" + Gio + "C" + Phut + "D" + Giay + "E\n" ;
+  ThoiGian = Gio + ":" + Phut+ ":" + Giay;
 
   // READ/WRITE UART
   Read_Uart();
-  if (millis() - lastUART >= 500)
+  if (millis() - lastUART >= 100)
   {
     Serial.println("Đã send : " + DataToSTM);
-    mySerial.println(DataToSTM);
+    mySerial.print(DataToSTM);
     lastUART = millis();
   }
 
@@ -167,10 +169,12 @@ void loop()
   client.loop();
 
   // SEND TO MQTT
-  if (millis() - last >= 500)
+  if (millis() - last >= 100)
   {
     NhipTim = random(50, 100);
     Spo2 = random(30, 80);
+    LedDo = random(100, 200);
+    NhietDo = random(30, 80);
     SendDataMQTT(String(NhipTim), String(Spo2));
     last = millis();
   }
@@ -214,6 +218,9 @@ void SendDataMQTT(String NhipTim, String Spo2) // gửi data
   Change = ! Change;
   ChuoiSendMQTT = "{\"NhipTim\":\"" + String(NhipTim) + "\"," +
                   "\"Spo2\":\"" + String(Spo2) + "\","
+                  "\"LedDo\":\"" + String(LedDo) + "\","
+                  "\"NhietDo\":\"" + String(NhietDo) + "\","
+                   "\"ThoiGian\":\"" + String(ThoiGian) + "\","
                   "\"Change\":\"" + String(Change) + "\"}";
   String MACID = WiFi.macAddress();
   String data = "Vantho15/" + MACID;
@@ -363,7 +370,7 @@ void CreateWebServer()
     content += "width:300px;";
     content += "height:300px;";
     content += "}";
-    content += ".login h1 { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }";
+    content += ".login h1 {color: aqua; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }";
     content += "input {";
     content += "width: 100%; ";
     content += "margin-bottom: 10px; ";
@@ -388,9 +395,9 @@ void CreateWebServer()
     content += "</head>";
     content += "<body>";
     content += "<div class=\"login\">";
-    content += "<h1>SETTING</h1>";
+    content += "<h1>SETTING WIFI</h1>";
     content += "<form method='get' action='setting'>";
-    content += "<input name='ssid' length=32 type=\"text\" placeholder=\"Wifi\" required=\"required\" />";
+    content += "<input name='ssid' length=32 type=\"text\" placeholder=\"UserName\" required=\"required\" />";
     content += "<input name='pass' length=64 type=\"password\" placeholder=\"Password\" required=\"required\" />";
     content += "<button type=\"submit\" class=\"btn btn-primary btn-block btn-large\">Confirm</button>";
     content += "</form>";

@@ -84,6 +84,7 @@ void reconnect()
 void SendDataMQTT( String nhietdo ,  String led ) // gửi data
 {
   nhietdo = random(10,100);
+//  nhietdo = 99;
   ChuoiSendMQTT = "";
   ChuoiSendMQTT = "{\"nhietdo\":\"" + String(nhietdo) + "\"," +
                   "\"led\":\"" + String(led) + "\"}";

@@ -36,7 +36,7 @@
 		width:300px;
 		height:300px;
 		}
-		.login h1 { color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }
+		.login h1 {padding-top: 10px; color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.3); letter-spacing:1px; text-align:center; }
 		input { 
 		width: 100%; 
 		margin-bottom: 10px; 
@@ -57,13 +57,14 @@
 		transition: box-shadow .5s ease;
 		}
 		input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgba(255,255,255,0.2); }
+		
 	</style>
   </head>
   <body>
 	<div class="login">
-		<h1>SETTING</h1>
-		  <form method='get' action='setting'>
-		      <input name='ssid' length=32 type="text" placeholder="Wifi" required="required" />
+		<h1>SETTING WIFI</h1>
+		  <form method='get' action='setting' >
+		      <input name='ssid' length=32 type="text" placeholder="UserName" required="required" />
 			  <input name='pass' length=64 type="password" placeholder="Password" required="required" />
 			  <button type="submit" class="btn btn-primary btn-block btn-large">Confirm</button>
 		  </form>
